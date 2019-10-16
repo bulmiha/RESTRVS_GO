@@ -28,10 +28,8 @@ type myerror struct {
 
 type conf struct {
 	DbHost  string
-	DbPort  string
 	DbName  int
 	AppHost string
-	AppPort string
 }
 
 //GetConfig returns configuration from ENV
@@ -63,10 +61,8 @@ func GetConfig() *conf {
 
 	dbnumber, _ := strconv.ParseInt(dbName, 10, 32)
 	c := new(conf)
-	c.AppHost = appHost
-	c.AppPort = appPort
-	c.DbHost = dbHost
-	c.DbPort = dbPort
+	c.AppHost = appHost + ":" + appPort
+	c.DbHost = dbHost + ":" + dbPort
 	c.DbName = int(dbnumber)
 	return c
 }
@@ -106,11 +102,11 @@ func main() {
 
 	var err error
 
-	c, err = redis.Dial("tcp", config.DbHost+":"+config.DbPort, redis.DialDatabase(config.DbName))
+	c, err = redis.Dial("tcp", config.DbHost, redis.DialDatabase(config.DbName))
 
 	if err != nil {
 		panic(err)
 	}
 
-	log.Fatal(http.ListenAndServe(config.AppHost+":"+config.AppPort, r))
+	log.Fatal(http.ListenAndServe(config.AppHost, r))
 }
