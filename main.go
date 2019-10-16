@@ -26,13 +26,56 @@ type myerror struct {
 	Type  int    `json:"type"`
 }
 
+type conf struct {
+	DbHost  string
+	DbPort  string
+	DbName  int
+	AppHost string
+	AppPort string
+}
+
+//GetConfig returns configuration from ENV
+func GetConfig() *conf {
+	var dbHost, dbPort, appHost, appPort, dbName string
+	dbHost = os.Getenv("DB_HOST")
+	if len(dbHost) == 0 {
+		dbHost = "redis"
+	}
+	dbPort = os.Getenv("DB_PORT")
+	if len(dbPort) == 0 {
+		dbPort = "6379"
+	}
+
+	dbName = os.Getenv("DB_NAME")
+	if len(dbName) == 0 {
+		dbName = "0"
+	}
+
+	appHost = os.Getenv("APP_HOST")
+	if len(appHost) == 0 {
+		appHost = "0.0.0.0"
+	}
+
+	appPort = os.Getenv("APP_PORT")
+	if len(appPort) == 0 {
+		appPort = "8080"
+	}
+
+	dbnumber, _ := strconv.ParseInt(dbName, 10, 32)
+	c := new(conf)
+	c.AppHost = appHost
+	c.AppPort = appPort
+	c.DbHost = dbHost
+	c.DbPort = dbPort
+	c.DbName = int(dbnumber)
+	return c
+}
+
 func increment(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var number req
 	json.NewDecoder(r.Body).Decode(&number)
-	c.Send("GET", fmt.Sprint(number.Number))
-	c.Flush()
-	data, _ := c.Receive()
+	data, _ := c.Do("GET", fmt.Sprint(number.Number))
 	if data != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(myerror{
@@ -41,9 +84,7 @@ func increment(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	c.Send("GET", fmt.Sprint(number.Number+1))
-	c.Flush()
-	data, _ = c.Receive()
+	data, _ = c.Do("GET", fmt.Sprint(number.Number+1))
 	if data != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(myerror{
@@ -60,37 +101,16 @@ func increment(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/increment", increment).Methods("POST")
+
+	config := GetConfig()
+
 	var err error
-	var db_host, db_port, app_host, app_port, db_name string
-	db_host = os.Getenv("DB_HOST")
-	if len(db_host) == 0 {
-		db_host = "redis"
-	}
-	db_port = os.Getenv("DB_PORT")
-	if len(db_port) == 0 {
-		db_port = "6379"
-	}
 
-	db_name = os.Getenv("DB_NAME")
-	if len(db_name) == 0 {
-		db_name = "0"
-	}
+	c, err = redis.Dial("tcp", config.DbHost+":"+config.DbPort, redis.DialDatabase(config.DbName))
 
-	app_host = os.Getenv("APP_HOST")
-	if len(app_host) == 0 {
-		app_host = "0.0.0.0"
-	}
-
-	app_port = os.Getenv("APP_PORT")
-	if len(app_port) == 0 {
-		app_port = "8080"
-	}
-
-	dbnumber, _ := strconv.ParseInt(db_name, 10, 32)
-
-	c, err = redis.Dial("tcp", db_host+":"+db_port, redis.DialDatabase(int(dbnumber)))
 	if err != nil {
 		panic(err)
 	}
-	log.Fatal(http.ListenAndServe(app_host+":"+app_port, r))
+
+	log.Fatal(http.ListenAndServe(config.AppHost+":"+config.AppPort, r))
 }
