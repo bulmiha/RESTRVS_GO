@@ -70,7 +70,11 @@ func GetConfig() *conf {
 func increment(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var number req
-	json.NewDecoder(r.Body).Decode(&number)
+	err := json.NewDecoder(r.Body).Decode(&number)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	data, _ := c.Do("GET", fmt.Sprint(number.Number))
 	if data != nil {
 		w.WriteHeader(http.StatusBadRequest)
