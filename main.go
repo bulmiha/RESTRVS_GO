@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -10,9 +11,12 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/gorilla/mux"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 var c redis.Conn
+
+var schemaLoader gojsonschema.JSONLoader
 
 type req struct {
 	Number int `json:"number"`
@@ -37,7 +41,7 @@ func GetConfig() *conf {
 	var dbHost, dbPort, appHost, appPort, dbName string
 	dbHost = os.Getenv("DB_HOST")
 	if len(dbHost) == 0 {
-		dbHost = "redis"
+		dbHost = "localhost"
 	}
 	dbPort = os.Getenv("DB_PORT")
 	if len(dbPort) == 0 {
@@ -70,11 +74,34 @@ func GetConfig() *conf {
 func increment(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var number req
-	err := json.NewDecoder(r.Body).Decode(&number)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(myerror{
+			Error: "Wrong request format",
+			Type:  3,
+		})
 		return
 	}
+	docLoader := gojsonschema.NewBytesLoader(body)
+
+	result, err := gojsonschema.Validate(schemaLoader, docLoader)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if !result.Valid() {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(myerror{
+			Error: "Wrong request format",
+			Type:  3,
+		})
+		return
+	}
+
+	json.Unmarshal(body, &number)
+
 	data, _ := c.Do("GET", fmt.Sprint(number.Number))
 	if data != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -100,11 +127,18 @@ func increment(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
+	file, err := os.Open("request_schema.json")
+	if err != nil {
+		panic(err)
+	}
+	schema, err := ioutil.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	schemaLoader = gojsonschema.NewBytesLoader(schema)
 	r.HandleFunc("/increment", increment).Methods("POST")
 
 	config := GetConfig()
-
-	var err error
 
 	c, err = redis.Dial("tcp", config.DbHost, redis.DialDatabase(config.DbName))
 

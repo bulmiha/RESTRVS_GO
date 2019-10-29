@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "description": "Increment request",
+    "properties": {
+      "number": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "required": ["number"]
+  }
