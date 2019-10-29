@@ -38,36 +38,39 @@ type conf struct {
 
 //GetConfig returns configuration from ENV
 func GetConfig() *conf {
-	var dbHost, dbPort, appHost, appPort, dbName string
-	dbHost = os.Getenv("DB_HOST")
-	if len(dbHost) == 0 {
+	c := new(conf)
+	dbHost, lookup := os.LookupEnv("DB_HOST")
+	if !lookup {
 		dbHost = "localhost"
 	}
-	dbPort = os.Getenv("DB_PORT")
-	if len(dbPort) == 0 {
+	dbPort, lookup := os.LookupEnv("DB_PORT")
+	if !lookup {
 		dbPort = "6379"
 	}
 
-	dbName = os.Getenv("DB_NAME")
-	if len(dbName) == 0 {
-		dbName = "0"
+	dbName, lookup := os.LookupEnv("DB_NAME")
+	if lookup {
+		dbnumber, err := strconv.ParseInt(dbName, 10, 32)
+		if err != nil {
+			panic(err)
+		}
+		c.DbName = int(dbnumber)
+	} else {
+		c.DbName = 0
 	}
 
-	appHost = os.Getenv("APP_HOST")
-	if len(appHost) == 0 {
+	appHost, lookup := os.LookupEnv("APP_HOST")
+	if !lookup {
 		appHost = "0.0.0.0"
 	}
 
-	appPort = os.Getenv("APP_PORT")
-	if len(appPort) == 0 {
+	appPort, lookup := os.LookupEnv("APP_PORT")
+	if !lookup {
 		appPort = "8080"
 	}
 
-	dbnumber, _ := strconv.ParseInt(dbName, 10, 32)
-	c := new(conf)
 	c.AppHost = appHost + ":" + appPort
 	c.DbHost = dbHost + ":" + dbPort
-	c.DbName = int(dbnumber)
 	return c
 }
 
