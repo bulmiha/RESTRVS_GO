@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ns-11
+spec:
+  selector:
+    matchLabels:
+      service: ns-11
+      app: service
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 3
+  revisionHistoryLimit: 3
+  template:
+    metadata:
+      labels:
+        service: ns-11
+        app: service
+    spec:
+      containers:
+        - name: service
+          image: bulmiha64/restvps-go:latest
+          imagePullPolicy: Always
+          env:
+            - name: APP_HOST
+              value: "0.0.0.0"
+            - name: APP_PORT
+              value: "80"
+            - name: DB_HOST
+              value: "127.0.0.1"
+            - name: DB_PORT
+              value: "6379"
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 500m
+              memory: 500Mi
