@@ -128,6 +128,10 @@ func increment(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func ready(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	r := mux.NewRouter()
 	file, err := os.Open("request_schema.json")
@@ -140,6 +144,7 @@ func main() {
 	}
 	schemaLoader = gojsonschema.NewBytesLoader(schema)
 	r.HandleFunc("/increment", increment).Methods("POST")
+	r.HandleFunc("/ready", ready).Methods("GET")
 
 	config := GetConfig()
 
