@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: service
-          image: bulmiha64/mai_rvs:latest
+          image: bulmiha64/restvps-go:latest
           imagePullPolicy: Always
           env:
             - name: APP_HOST
