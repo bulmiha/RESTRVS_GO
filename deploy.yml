@@ -51,3 +51,15 @@ spec:
             timeoutSeconds: 3
             successThreshold: 1
             failureThreshold: 3
+---
+apiVersion: v1
+kind: Service        # Type of Kubernetes resource
+metadata:
+  name: ns-11 # Name of the Kubernetes resource
+  labels:            # Labels that will be applied to this resource
+    app: ns-11
+    tier: backend
+spec:
+  ports:
+  - port: 80       # Map incoming connections on port 6379 to the target port 6379 of the Pod
+    targetPort: 80
