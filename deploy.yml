@@ -7,7 +7,7 @@ spec:
     matchLabels:
       service: ns-11
       app: service
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -31,7 +31,7 @@ spec:
             - name: APP_PORT
               value: "80"
             - name: DB_HOST
-              value: "127.0.0.1"
+              value: "redis-master"
             - name: DB_PORT
               value: "6379"
           ports:
