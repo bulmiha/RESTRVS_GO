@@ -1,8 +1,13 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
+  creationTimestamp: "2019-11-12T18:15:44Z"
+  generation: 2
   name: rvs-go
   namespace: ns-11
+  resourceVersion: "537064"
+  selfLink: /apis/extensions/v1beta1/namespaces/ns-11/ingresses/rvs-go
+  uid: e45eb79d-25da-4714-ae64-bdf6d73c1497
 spec:
   rules:
   - host: node-11.mai.ru
@@ -12,3 +17,7 @@ spec:
           serviceName: ns-11
           servicePort: 80
         path: /
+status:
+  loadBalancer:
+    ingress:
+    - {}
