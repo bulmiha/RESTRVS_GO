@@ -57,9 +57,13 @@ kind: Service        # Type of Kubernetes resource
 metadata:
   name: ns-11 # Name of the Kubernetes resource
   labels:            # Labels that will be applied to this resource
-    app: ns-11
+    service: ns-11
     tier: backend
 spec:
   ports:
   - port: 80       # Map incoming connections on port 6379 to the target port 6379 of the Pod
     targetPort: 80
+    name: service
+  selector:
+    service: ns-11
+    app: service
