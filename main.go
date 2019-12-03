@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/go-redsync/redsync"
 	"github.com/gomodule/redigo/redis"
 	"github.com/gorilla/mux"
 	"github.com/xeipuuv/gojsonschema"
@@ -148,11 +150,18 @@ func main() {
 
 	config := GetConfig()
 
-	c, err = redis.Dial("tcp", config.DbHost, redis.DialDatabase(config.DbName))
+	// c, err = redis.Dial("tcp", config.DbHost, redis.DialDatabase(config.DbName))
 
 	if err != nil {
 		panic(err)
 	}
+	p := redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+		// Dial or DialContext must be set. When both are set, DialContext takes precedence over Dial.
+		Dial: func() (redis.Conn, error) { return redis.Dial("tcp", config.DbHost, redis.DialDatabase(config.DbName)) },
+	}
+	sync := redsync.New()
 
 	log.Fatal(http.ListenAndServe(config.AppHost, r))
 }
