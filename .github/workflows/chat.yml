@@ -35,4 +35,6 @@ jobs:
     steps:
     - name: Google Chat Notification
       run: |
-          echo "${{ toJson(github.event.pull_request) }}"
+          curl -f --location --request POST '${{ secrets.WEBHOOK }}' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{"cards":[{"header":{"title":"Pull request ${{ github.event.pull_request.title }} is ready to review","subtitle":"Description"},"sections":[{"widgets":[{"textParagraph":{"text":"${{ github.event.pull_request.body }}"}},{"buttons":[{"textButton":{"text":"Open Pull Request","onClick":{"openLink":{"url":"${{ github.event.pull_request.html_url }}"}}}},{"textButton":{"text":"Open Repo","onClick":{"openLink":{"url":"${{ github.event.pull_request.base.repo.html_url }}"}}}},{"textButton":{"text":"View Actor","onClick":{"openLink":{"url":"${{ github.event.pull_request.user.html_url }}"}}}}]}]}]}]}'
