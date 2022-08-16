@@ -15,7 +15,7 @@ jobs:
       run: |
           curl -f --location --request POST '${{ secrets.WEBHOOK }}' \
           --header 'Content-Type: application/json' \
-          --data-raw '{"cards":[{"header":{"title":Job "${{ github.event.workflow_run.name }} failed","subtitle": "In repository ${{ github.event.workflow_run.repository.name }}"}}]}'
+          --data-raw '{"cards":[{"header":{"title":"Job ${{ github.event.workflow_run.name }} failed"},"sections":[{"widgets":[{"textParagraph":{"text":"In repository ${{ github.event.workflow_run.repository.name }}"}}]}]}]}'
         #     "cards":[
         #         {
         #                 "header": {
