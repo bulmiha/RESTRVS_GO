@@ -15,7 +15,7 @@ jobs:
       run: |
           curl --location --request POST '${{ secrets.WEBHOOK }}' \
           --header 'Content-Type: application/json' \
-          --data-raw '{"cards":[{"header":{"${{ github.event.workflow_run.name }}","subtitle": " on ${{ github.event.workflow_run.repository.name }}"}}]}'
+          --data-raw '{"cards":[{"header":{"title":"${{ github.event.workflow_run.name }}","subtitle": " on ${{ github.event.workflow_run.repository.name }}"}}]}'
         #     "cards":[
         #         {
         #                 "header": {
