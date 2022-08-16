@@ -13,6 +13,15 @@ jobs:
     steps:
     - name: Google Chat Notification
       run: |
-          curl --location --request POST '${{ secrets.WEBHOOK }}' \
+          curl -f --location --request POST '${{ secrets.WEBHOOK }}' \
           --header 'Content-Type: application/json' \
-          --data-raw '{"text":"${{ github.event.workflow_run.conclusion }}"}'
+          --data-raw '{
+	"cards":[
+		{
+				"header": {
+					"title": "${{ github.event.workflow_run.name }}",
+					"subtitle": "${{ github.event.workflow_run.repository.name }}"
+				}
+		}
+	]
+}'
