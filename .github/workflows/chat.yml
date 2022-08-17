@@ -1,40 +1,53 @@
-# This is a basic workflow to help you get started with Actions
-
 name: "Chat"
 
 on:
-  pull_request:
-    types: [ready_for_review]
+  # pull_request:
+  #   types: [ready_for_review]
 
-#   workflow_run:
-#     workflows: ["*"]
-#     types: [completed]
-#     branches: [master]
+  #   workflow_run:
+  #     workflows: ["*"]
+  #     types: [completed]
+  #     branches: [master]
+  release:
+    types: [prereleased]
+
 jobs:
   on-failure:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run && github.event.workflow_run.conclusion == 'failure' }}
     steps:
-    - name: Google Chat Notification
-      run: |
+      - name: Google Chat Notification
+        run: |
           curl -f --location --request POST '${{ secrets.WEBHOOK }}' \
           --header 'Content-Type: application/json' \
           --data-raw '{"cards":[{"header":{"title":"Job ${{ github.event.workflow_run.name }} failed"},"sections":[{"widgets":[{"textParagraph":{"text":"In repository ${{ github.event.workflow_run.repository.name }}"}},{"buttons":[{"textButton":{"text":"Open Repo","onClick":{"openLink":{"url":"${{ github.event.workflow_run.repository.html_url }}"}}}},{"textButton":{"text":"View Job","onClick":{"openLink":{"url":"${{ github.event.workflow_run.html_url }}"}}}},{"textButton":{"text":"View Actor","onClick":{"openLink":{"url":"${{ github.event.workflow_run.actor.html_url }}"}}}}]}]}]}]}'
+
   on-release:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.name == 'Release' }}
     steps:
-    - name: Google Chat Notification
-      run: |
+      - name: Google Chat Notification
+        run: |
           curl -f --location --request POST '${{ secrets.WEBHOOK }}' \
           --header 'Content-Type: application/json' \
           --data-raw '{"cards":[{"header":{"title":"${{ github.event.workflow_run.repository.name }} had a release"},"sections":[{"widgets":[{"textParagraph":{"text":"Build and Push Chart"}},{"buttons":[{"textButton":{"text":"Open Repo","onClick":{"openLink":{"url":"${{ github.event.workflow_run.repository.html_url }}"}}}},{"textButton":{"text":"View Job","onClick":{"openLink":{"url":"${{ github.event.workflow_run.html_url }}"}}}},{"textButton":{"text":"View Actor","onClick":{"openLink":{"url":"${{ github.event.workflow_run.actor.html_url }}"}}}}]}]}]}]}'
+
   on-ready-for-review:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request }}
     steps:
-    - name: Google Chat Notification
-      run: |
+      - name: Google Chat Notification
+        run: |
+          curl -f --location --request POST '${{ secrets.WEBHOOK }}' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{"cards":[{"header":{"title":"Pull request ${{ github.event.pull_request.title }} is ready to review","subtitle":"In repo: ${{ github.event.pull_request.base.repo.name }}"},"sections":[{"widgets":[{"textParagraph":{"text":"${{ github.event.pull_request.body }}"}},{"buttons":[{"textButton":{"text":"Open Pull Request","onClick":{"openLink":{"url":"${{ github.event.pull_request.html_url }}"}}}},{"textButton":{"text":"Open Repo","onClick":{"openLink":{"url":"${{ github.event.pull_request.base.repo.html_url }}"}}}},{"textButton":{"text":"View Actor","onClick":{"openLink":{"url":"${{ github.event.pull_request.user.html_url }}"}}}}]}]}]}]}'
+
+  on-ready-for-release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.release }}
+    steps:
+      - name: Google Chat Notification
+        run: |
           curl -f --location --request POST '${{ secrets.WEBHOOK }}' \
           --header 'Content-Type: application/json' \
           --data-raw '{"cards":[{"header":{"title":"Pull request ${{ github.event.pull_request.title }} is ready to review","subtitle":"In repo: ${{ github.event.pull_request.base.repo.name }}"},"sections":[{"widgets":[{"textParagraph":{"text":"${{ github.event.pull_request.body }}"}},{"buttons":[{"textButton":{"text":"Open Pull Request","onClick":{"openLink":{"url":"${{ github.event.pull_request.html_url }}"}}}},{"textButton":{"text":"Open Repo","onClick":{"openLink":{"url":"${{ github.event.pull_request.base.repo.html_url }}"}}}},{"textButton":{"text":"View Actor","onClick":{"openLink":{"url":"${{ github.event.pull_request.user.html_url }}"}}}}]}]}]}]}'
